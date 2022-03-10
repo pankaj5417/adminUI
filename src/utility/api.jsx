@@ -3,7 +3,7 @@ import axios from "axios";
 export default axios.create({
   baseURL: "/",
   params: {
-    _limit:5
+    _limit:10
    },
   headers: {
     "Content-Type": "application/json",

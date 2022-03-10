@@ -10,15 +10,15 @@ import {
   Spin,
   Button,
 } from "antd";
-import axios from "../util/api";
+import axios from "../utility/api";
 import { EditOutlined, DeleteTwoTone } from "@ant-design/icons";
-import { GET_DATA_URL } from "../constants";
+import { GET_DATA_URL } from "../constantsData";
 const { Search } = Input;
 
 const originData = [];
 
-const EditableCell = ({
-  editing,
+const EditCell = ({
+  edit,
   dataIndex,
   title,
   inputType,
@@ -27,10 +27,10 @@ const EditableCell = ({
   children,
   ...otherProps
 }) => {
-  const inputNode = inputType === "number" ? <InputNumber /> : <Input />;
+  const inputVal = inputType === "number" ? <InputNumber /> : <Input />;
   return (
     <td {...otherProps}>
-      {editing ? (
+      {edit ? (
         <Form.Item
           name={dataIndex}
           style={{
@@ -43,7 +43,7 @@ const EditableCell = ({
             },
           ]}
         >
-          {inputNode}
+          {inputVal}
         </Form.Item>
       ) : (
         children
@@ -57,11 +57,11 @@ const EditableCell = ({
 const AdminTable = () => {
   const [form] = Form.useForm();
   let [data, setData] = useState(originData);
-  const [editingKey, setEditingKey] = useState("");
+  const [editVal, setEditVal] = useState("");
   const [loading, setLoading] = useState(false);
   const [filter, setFilter] = useState("");
   const [selectedData, setSelectedData] = useState([]);
-  const openNotificationWithIcon = (type, message) => {
+  const openNotification = (type, message) => {
     notification[type]({
       message: message,
     });
@@ -81,7 +81,9 @@ const AdminTable = () => {
     setData(data);
   };
 
-  const removeSelected = () => {
+//function to remove selected row
+
+  const deleteSelectedItems = () => {
     const idArray = selectedData.map((e) => e.id);
     data = data.filter((item) => {
       return !idArray.includes(item.id);
@@ -94,7 +96,7 @@ const AdminTable = () => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        let { data: dataItem } = await axios.get(GET_DATA_URL);
+        let {  dataItem } = await axios.get(GET_DATA_URL);
         dataItem = dataItem.map((item) => {
           var temp = Object.assign({}, item);
           temp.key = item.id;
@@ -105,13 +107,15 @@ const AdminTable = () => {
       } catch (e) {
         setLoading(false);
         console.log(e);
-        openNotificationWithIcon("error", e.message);
+        openNotification("error", e.message);
       }
     };
     fetchData();
   }, []);
-  
-  const isEditing = (record) => record.key === editingKey;
+
+  //function to edit any record
+
+  const editItems = (record) => record.key === editVal;
 
   const edit = (record) => {
     form.setFieldsValue({
@@ -120,11 +124,11 @@ const AdminTable = () => {
       address: "",
       ...record,
     });
-    setEditingKey(record.key);
+    setEditVal(record.key);
   };
 
   const cancel = () => {
-    setEditingKey("");
+    setEditVal("");
   };
 
   const save = async (key) => {
@@ -137,17 +141,18 @@ const AdminTable = () => {
         const item = newData[index];
         newData.splice(index, 1, { ...item, ...row });
         setData(newData);
-        setEditingKey("");
+        setEditVal("");
       } else {
         newData.push(row);
         setData(newData);
-        setEditingKey("");
+        setEditVal("");
       }
     } catch (errInfo) {
       console.log("Validate Failed:", errInfo);
     }
   };
 
+  
   const columns = [
     {
       title: "Name",
@@ -173,7 +178,7 @@ const AdminTable = () => {
       className: "operation",
       width: "50%",
       render: (_, record) => {
-        const editable = isEditing(record);
+        const editable = editItems(record);
         return (
           <>
             {editable ? (
@@ -193,7 +198,7 @@ const AdminTable = () => {
               </span>
             ) : (
               <Typography.Link
-                disabled={editingKey !== ""}
+                disabled={editVal !== ""}
                 onClick={() => edit(record)}
               >
                 <EditOutlined />
@@ -201,7 +206,7 @@ const AdminTable = () => {
             )}
             <div className="delete-btn">
               <Typography.Link
-                disabled={editingKey !== ""}
+                disabled={editVal !== ""}
                 onClick={() => removeId(record.id)}
               >
                 <DeleteTwoTone twoToneColor="#eb2f96" />
@@ -214,7 +219,7 @@ const AdminTable = () => {
   ];
 
 
-  const mergedColumns = columns.map((col) => {
+  const columnData = columns.map((col) => {
     if (!col.editable) {
       return col;
     }
@@ -226,7 +231,7 @@ const AdminTable = () => {
         inputType: "text",
         dataIndex: col.dataIndex,
         title: col.title,
-        editing: isEditing(record),
+        editing: editItems(record),
       }),
     };
   });
@@ -241,7 +246,9 @@ const AdminTable = () => {
     },
   };
 
-  const onSearchChange = (e) => {
+  //function to search record
+
+  const searchItems = (e) => {
     setFilter(e.target.value);
   };
   if (loading) {
@@ -251,14 +258,14 @@ const AdminTable = () => {
     <>
       <Search
         placeholder="Search by Name, Email or Role"
-        onChange={onSearchChange}
+        onChange={searchItems}
         enterButton
       />
       <Form form={form} component={false}>
         <Table
           components={{
             body: {
-              cell: EditableCell,
+              cell: EditCell,
             },
           }}
           rowSelection={{
@@ -266,7 +273,7 @@ const AdminTable = () => {
           }}
           bordered
           dataSource={data}
-          columns={mergedColumns}
+          columns={columnData}
           rowClassName="editable-row"
           pagination={{
             onChange: cancel,
@@ -278,7 +285,7 @@ const AdminTable = () => {
           type="primary"
           danger
           className="delete-selected-btn"
-          onClick={() => removeSelected()}
+          onClick={() => deleteSelectedItems()}
         >
           Delete Selected
         </Button>
