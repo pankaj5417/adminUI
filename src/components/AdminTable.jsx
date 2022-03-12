@@ -96,7 +96,7 @@ const AdminTable = () => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        let {  dataItem } = await axios.get(GET_DATA_URL);
+        let {data:dataItem }= await axios.get(GET_DATA_URL);
         dataItem = dataItem.map((item) => {
           var temp = Object.assign({}, item);
           temp.key = item.id;
