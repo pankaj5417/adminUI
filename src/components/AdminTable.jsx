@@ -18,7 +18,7 @@ const { Search } = Input;
 const originData = [];
 
 const EditCell = ({
-  edit,
+  editing,
   dataIndex,
   title,
   inputType,
@@ -30,7 +30,7 @@ const EditCell = ({
   const inputVal = inputType === "number" ? <InputNumber /> : <Input />;
   return (
     <td {...otherProps}>
-      {edit ? (
+      {editing ? (
         <Form.Item
           name={dataIndex}
           style={{
@@ -70,7 +70,7 @@ const AdminTable = () => {
     data &&
     data.filter((item) => {
       return Object.keys(item).some((key) =>
-        item[key].toLowerCase().includes(filter)
+        item[key].toLowerCase().includes(filter.toLowerCase())
       );
     });
 
@@ -81,7 +81,7 @@ const AdminTable = () => {
     setData(data);
   };
 
-//function to remove selected row
+  //function to remove selected row
 
   const deleteSelectedItems = () => {
     const idArray = selectedData.map((e) => e.id);
@@ -120,8 +120,8 @@ const AdminTable = () => {
   const edit = (record) => {
     form.setFieldsValue({
       name: "",
-      age: "",
-      address: "",
+      email: "",
+      role: "",
       ...record,
     });
     setEditVal(record.key);
@@ -152,7 +152,6 @@ const AdminTable = () => {
     }
   };
 
-  
   const columns = [
     {
       title: "Name",
@@ -177,7 +176,8 @@ const AdminTable = () => {
       dataIndex: "operation",
       className: "operation",
       width: "50%",
-      render: (_, record) => {
+    
+     render: (_, record) => {
         const editable = editItems(record);
         return (
           <>
@@ -217,7 +217,6 @@ const AdminTable = () => {
       },
     },
   ];
-
 
   const columnData = columns.map((col) => {
     if (!col.editable) {
